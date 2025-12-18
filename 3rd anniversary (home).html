@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3 Years of Us - Anniversary</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Poppins:wght@300;400;600&family=Lora:ital,wght@0,400;1,500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #d63384;
+            --accent: #ff758c;
+            --soft: #ffe6f2;
+            --glass: rgba(255, 255, 255, 0.95);
+        }
+
+        body, html { margin: 0; padding: 0; min-height: 100vh; font-family: 'Poppins', sans-serif; background: #fce4ec; overflow-x: hidden; }
+
+        /* --- LOCK SCREEN --- */
+        #lockScreen {
+            position: fixed; inset: 0; z-index: 10000;
+            background: linear-gradient(135deg, #f8bbd0, #f48fb1);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: all 1s cubic-bezier(0.65, 0, 0.35, 1);
+        }
+        .keypad-container {
+            background: rgba(255,255,255,0.85); padding: 40px; border-radius: 40px;
+            backdrop-filter: blur(15px); text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15); width: 280px; border: 2px solid white;
+        }
+        .display-dots { display: flex; justify-content: center; gap: 12px; margin-bottom: 25px; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--primary); transition: 0.3s; }
+        .dot.active { background: var(--primary); transform: scale(1.3); }
+        .keypad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .num-key {
+            width: 60px; height: 60px; background: #fff; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 1.3em; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .num-key:active { transform: scale(0.9); background: var(--primary); color: white; }
+
+        /* --- MAIN SITE UI --- */
+        #mainSite { display: none; opacity: 0; transition: opacity 1.5s; background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%); min-height: 100vh; }
+        
+        .nav-dock {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95); padding: 10px 20px;
+            border-radius: 40px; display: flex; gap: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            z-index: 1000; backdrop-filter: blur(10px);
+        }
+        .nav-dock button { background: none; border: none; font-size: 1.4em; cursor: pointer; padding: 10px; border-radius: 50%; transition: 0.3s; }
+        .nav-dock button.active { background: var(--primary); color: white; transform: translateY(-5px); }
+
+        .content-card {
+            display: none; width: 90%; max-width: 600px; margin: 40px auto 120px;
+            padding: 30px; border-radius: 30px; background: var(--glass);
+            backdrop-filter: blur(10px); text-align: center; animation: slideUp 0.8s ease;
+        }
+        .content-card.active { display: block; }
+
+        /* --- ENVELOPE STYLING --- */
+        .envelope-wrapper {
+            position: relative; width: 100%; max-width: 450px; height: 300px;
+            background: #ffffff; border-radius: 10px; margin: 40px auto;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.2); cursor: pointer; z-index: 5;
+            transition: transform 0.3s;
+        }
+        .envelope-wrapper:hover { transform: scale(1.02); }
+        .flap {
+            position: absolute; top: 0; left: 0; width: 0; height: 0;
+            border-left: 225px solid transparent; border-right: 225px solid transparent;
+            border-top: 180px solid #f8bbd0; transform-origin: top; transition: transform 0.6s ease-in-out; z-index: 3;
+        }
+        .front {
+            position: absolute; bottom: 0; left: 0; width: 0; height: 0;
+            border-left: 225px solid #ffffff; border-right: 225px solid #ffffff;
+            border-top: 150px solid transparent; border-bottom: 150px solid #fdf2f5;
+            z-index: 4; border-radius: 0 0 10px 10px;
+        }
+        .heart-seal {
+            position: absolute; top: 140px; left: 50%; transform: translateX(-50%) rotate(-45deg);
+            width: 50px; height: 50px; background: #d63384; z-index: 6; transition: 0.5s;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .heart-seal::before, .heart-seal::after { content: ""; position: absolute; width: 50px; height: 50px; background: #d63384; border-radius: 50%; }
+        .heart-seal::before { top: -25px; left: 0; }
+        .heart-seal::after { left: 25px; top: 0; }
+
+        /* --- LETTER MODAL --- */
+        .letter {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
+            width: 90%; max-width: 800px; height: 85vh; background: white;
+            z-index: 2000; padding: 50px; border-radius: 20px;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.5); overflow-y: auto; transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); opacity: 0;
+        }
+        .letter.open { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        .letter h2 { font-family: 'Dancing Script'; font-size: 3.5rem; color: #d63384; text-align: center; margin-bottom: 30px; }
+        .letter p { font-family: 'Lora', serif; font-size: 1.1rem; line-height: 1.8; color: #2d3436; margin-bottom: 20px; }
+        .close-btn { position: sticky; top: 0; float: right; background: #eee; border: none; padding: 10px 20px; border-radius: 30px; cursor: pointer; font-weight: bold; }
+
+        /* --- BUCKET LIST GALLERY --- */
+        .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 25px; }
+        .polaroid { background: white; padding: 15px 15px 25px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); transform: rotate(-2deg); transition: 0.3s; }
+        .polaroid:nth-child(even) { transform: rotate(2deg); }
+        .polaroid:hover { transform: scale(1.05) rotate(0deg); z-index: 10; }
+        .polaroid img { width: 100%; height: 200px; object-fit: cover; border: 1px solid #eee; }
+        .polaroid p { font-family: 'Dancing Script'; margin: 15px 0 0; font-size: 1.3em; color: var(--primary); }
+
+        @media (max-width: 600px) {
+            .envelope-wrapper { width: 320px; height: 220px; }
+            .flap { border-left: 160px solid transparent; border-right: 160px solid transparent; border-top: 130px solid #f8bbd0; }
+            .front { border-left: 160px solid #ffffff; border-right: 160px solid #ffffff; }
+            .heart-seal { top: 90px; }
+            .letter { padding: 30px; }
+            .polaroid img { height: 150px; }
+        }
+
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 20px; }
+        .calendar-grid div { padding: 8px; border-radius: 5px; font-weight: bold; font-size: 0.8em; }
+        .anniversary-day { background: var(--primary); color: white; border-radius: 50% !important; }
+
+        @keyframes slideUp { from { opacity:0; transform: translateY(30px); } to { opacity:1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div id="lockScreen">
+    <div class="keypad-container">
+        <h3 style="font-family: 'Dancing Script'; font-size: 2em; color: var(--primary); margin-top: 0;">For Babi</h3>
+        <div class="display-dots" id="dotBox">
+            <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        </div>
+        <div class="keypad-grid">
+            <div class="num-key" onclick="tap(1)">1</div><div class="num-key" onclick="tap(2)">2</div><div class="num-key" onclick="tap(3)">3</div>
+            <div class="num-key" onclick="tap(4)">4</div><div class="num-key" onclick="tap(5)">5</div><div class="num-key" onclick="tap(6)">6</div>
+            <div class="num-key" onclick="tap(7)">7</div><div class="num-key" onclick="tap(8)">8</div><div class="num-key" onclick="tap(9)">9</div>
+            <div class="num-key" onclick="clearKeys()">C</div><div class="num-key" onclick="tap(0)">0</div><div class="num-key">❤️</div>
+        </div>
+    </div>
+</div>
+
+<div id="mainSite">
+    <nav class="nav-dock">
+        <button onclick="nav('home')" id="btn-home" class="active">🏠</button>
+        <button onclick="nav('together')" id="btn-together">📅</button>
+        <button onclick="nav('notes')" id="btn-notes">💌</button>
+        <button onclick="nav('places')" id="btn-places">📍</button>
+    </nav>
+
+    <section id="home" class="content-card active">
+        <h1 style="font-family: 'Dancing Script'; font-size: 3em; margin-bottom: 0;">Happy 3 Years! ❤️</h1>
+        <div id="countdown" style="font-size: 1.3em; font-weight: bold; margin: 20px 0; color: var(--primary);"></div>
+        <p>"Loving you is my favorite adventure."</p>
+    </section>
+
+    <section id="together" class="content-card">
+        <h1>Our Journey</h1>
+        <p id="daysCount" style="font-weight: bold; color: var(--primary);"></p>
+        <div class="calendar-grid" id="calGrid"></div>
+        <p style="font-size: 0.8em; color: #888; margin-top: 15px;">January 3, 2022</p>
+    </section>
+
+    <section id="notes" class="content-card">
+        <h1 style="font-family: 'Dancing Script'; font-size: 2.2em;">A Song for Us</h1>
+        <div style="position: relative; width: 100%; padding-bottom: 56.25%; height: 0; border-radius: 15px; overflow: hidden; margin: 20px 0;">
+            <iframe src="https://www.youtube.com/embed/tGv7CUutzqU" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        </div>
+
+        <div class="envelope-wrapper" onclick="openLetterEvy()">
+            <div class="flap" id="flap-evy"></div><div class="front"></div><div class="heart-seal"></div>
+            <div style="position:absolute; bottom:20px; width:100%; text-align:center; z-index:5; color:#d63384; font-weight:bold;">FOR BABI</div>
+        </div>
+        <p style="margin-top: 10px; font-style: italic; font-size: 0.9em;">(Press play, then tap the heart seal)</p>
+    </section>
+
+    <section id="places" class="content-card">
+        <h1>Our Bucket List 📍</h1>
+        <div class="gallery">
+            <div class="polaroid">
+                <img src="https://i.redd.it/p829d5xcs30c1.jpg" alt="City View">
+                <p>Seaside View</p>
+            </div>
+            <div class="polaroid">
+                <img src="https://files.garage.com.ph/wp-content/uploads/2022/06/22154230/GARAGE-featured-image-Oxgn-min.jpg" alt="Oxygn MOA">
+                <p>Oxygn MOA</p>
+            </div>
+            <div class="polaroid">
+                <img src="revolving-restaurant-philippines-1-w1024.webp" alt="Seoul Sky">
+                <p>Seoul Sky Revolving</p>
+            </div>
+        </div>
+    </section>
+</div>
+
+<div class="letter" id="letter-evy">
+    <button class="close-btn" onclick="closeLetterEvy(event)">X Close</button>
+    <h2>Dearest Babi,</h2>
+    <p>Happy 3rd Anniversary, my babi 🤍<br><br>
+    Three years with you feels both so fast and so deep at the same time. Sometimes I still can’t believe how far we’ve come—from the awkward beginnings, the shy smiles, the simple conversations, to the strong love we now hold. Every year with you has shaped me, taught me, and made me grow in ways I never expected.<br><br>
+    Thank you for staying, babi. Thank you for choosing me even on the days when I’m difficult, moody, or not at my best. I know we’re not perfect—we’ve had misunderstandings, fights, and moments where things felt heavy—but through all of that, we never stopped loving each other. Instead, we learned. We grew. We became stronger together.<br><br>
+    You are my comfort, my safe place, and my favorite person. In your arms, everything feels lighter. In your voice, I find peace. In your smile, I find reason. You make ordinary days special and hard days bearable. Loving you feels natural, like something my heart already knew how to do.<br><br>
+    I’m grateful for every memory we’ve made—the laughter, the late-night talks, the small moments only we understand. Even the tough times are precious to me because they remind me that our love is real, tested, and still standing.<br><br>
+    Babi, I promise to keep choosing you. To listen more, to love you better, and to grow alongside you. I may not be perfect, but my love for you is genuine and endless. I’ll continue learning how to be the person you deserve, one day at a time.<br><br>
+    Happy 3 years, my love. Here’s to more memories, more growth, more dreams, and a lifetime of choosing each other. I love you so much, babi—today, tomorrow, and always. 💕</p>
+    <p style="text-align: right; font-family: 'Dancing Script'; font-size: 2rem; color: #d63384;">Always yours...</p>
+</div>
+
+<script>
+    let pass = "";
+    const correct = "1326";
+
+    function tap(n) {
+        if (pass.length < 4) {
+            pass += n;
+            document.querySelectorAll('.dot')[pass.length-1].classList.add('active');
+            if (pass === correct) unlock();
+            else if (pass.length === 4) setTimeout(clearKeys, 300);
+        }
+    }
+
+    function unlock() {
+        document.getElementById('lockScreen').style.transform = "translateY(-100%)";
+        setTimeout(() => {
+            document.getElementById('lockScreen').style.display = 'none';
+            document.getElementById('mainSite').style.display = 'block';
+            setTimeout(() => { document.getElementById('mainSite').style.opacity = '1'; }, 50);
+            initCalendar(); startCounters(); startHearts();
+        }, 800);
+    }
+
+    function clearKeys() { pass = ""; document.querySelectorAll('.dot').forEach(d => d.classList.remove('active')); }
+
+    function nav(id) {
+        document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.nav-dock button').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.getElementById('btn-' + id).classList.add('active');
+    }
+
+    function openLetterEvy() {
+        document.getElementById('flap-evy').style.transform = 'rotateX(180deg)';
+        setTimeout(() => { document.getElementById('letter-evy').classList.add('open'); }, 300);
+    }
+
+    function closeLetterEvy(e) {
+        e.stopPropagation();
+        document.getElementById('letter-evy').classList.remove('open');
+        document.getElementById('flap-evy').style.transform = 'rotateX(0deg)';
+    }
+
+    function startCounters() {
+        const start = new Date("2022-01-03");
+        setInterval(() => {
+            const now = new Date();
+            const diff = now - start;
+            document.getElementById('daysCount').innerText = `${Math.floor(diff / (1000*60*60*24))} Days of Us ❤️`;
+            let y = now.getFullYear() - start.getFullYear();
+            let m = now.getMonth() - start.getMonth();
+            let d = now.getDate() - start.getDate();
+            if (d < 0) { m--; d += 30; } if (m < 0) { y--; m += 12; }
+            document.getElementById('countdown').innerHTML = `${y} Years | ${m} Months | ${d} Days`;
+        }, 1000);
+    }
+
+    function initCalendar() {
+        const grid = document.getElementById('calGrid');
+        grid.innerHTML = '';
+        ['S','M','T','W','T','F','S'].forEach(d => { const el = document.createElement('div'); el.innerText = d; el.style.color = "#d63384"; grid.appendChild(el); });
+        for(let i=0; i<6; i++) grid.appendChild(document.createElement('div'));
+        for(let d=1; d<=31; d++) {
+            const day = document.createElement('div'); day.innerText = d;
+            if(d === 3) day.className = "anniversary-day";
+            grid.appendChild(day);
+        }
+    }
+
+    function startHearts() {
+        setInterval(() => {
+            const heart = document.createElement('div');
+            heart.innerHTML = '❤️'; heart.style.position = 'fixed';
+            heart.style.left = Math.random() * 100 + 'vw'; heart.style.top = '110vh';
+            heart.style.fontSize = (Math.random() * 20 + 10) + 'px'; heart.style.opacity = Math.random();
+            heart.style.zIndex = '0';
+            document.body.appendChild(heart);
+            heart.animate([{ transform: 'translateY(0)', opacity: 1 }, { transform: 'translateY(-120vh)', opacity: 0 }], { duration: 6000 });
+            setTimeout(() => heart.remove(), 6000);
+        }, 300);
+    }
+</script>
+</body>
+</html>
